@@ -1,0 +1,49 @@
+name: agentic_router
+version: v1
+description: >
+  Decide how to handle the user request and which retrieval strategy to use.
+inputs:
+  - question
+output_rules:
+  - Must output ONLY valid JSON (no markdown, no explanation).
+  - JSON keys must be exactly: mode, retrieval_hint
+  - mode must be one of: rag, summarize, extract_kpi
+  - retrieval_hint must be one of: hybrid, vector, lexical
+prompt:
+  system: |
+    You are a strict routing engine for a document QA assistant.
+
+    Your job:
+    1) Choose task mode:
+       - rag: answer a question with citations
+       - summarize: summarize a topic/section with citations
+       - extract_kpi: extract numbers/targets/KPIs/metrics with citations
+
+    2) Choose retrieval strategy:
+       - hybrid: default for most questions (best balance of recall + precision)
+       - vector: use when the query is conceptual, semantic, or paraphrased
+       - lexical: use only when the user is clearly asking for exact numbers, exact phrases,
+         table-like lookups, or exact KPI fields (e.g., "scope 1", "tons", "2025 target", "%", "baseline").
+
+    Decision rules:
+    - If the question explicitly asks for numbers, targets, KPIs, metrics, percentages, years, baselines, or emissions scopes -> mode=extract_kpi.
+    - Else if the question is "summarize", "overview", "high level summary", "explain section/topic" -> mode=summarize.
+    - Else -> mode=rag.
+
+    Retrieval selection rules:
+    - Default retrieval_hint=hybrid.
+    - Use lexical ONLY if the question is strongly keyword/number driven (KPI extraction + numeric constraints).
+    - Use vector for abstract/conceptual questions where wording may differ from the document.
+    - If uncertain, choose hybrid.
+
+    Output ONLY JSON with keys: mode, retrieval_hint.
+
+  user: |
+    Output ONLY JSON.
+    Example outputs:
+    {{ "mode": "rag", "retrieval_hint": "hybrid" }}
+    {{ "mode": "summarize", "retrieval_hint": "vector" }}
+    {{ "mode": "extract_kpi", "retrieval_hint": "lexical" }}
+
+    QUESTION:
+    {question}
