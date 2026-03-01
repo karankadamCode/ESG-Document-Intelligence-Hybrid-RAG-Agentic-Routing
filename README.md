@@ -59,7 +59,7 @@ There is a need for a system that understands query intent, retrieves the right 
 
 Provide accurate, explainable Q&A over ESG / sustainability reports by:
 
-* Ingesting large PDF reports (e.g., ESG disclosures)
+* Ingesting large PDF reports (e.g., ESG disclosures) 
 * Chunking and embedding content for semantic search
 * Combining **vector search + lexical (BM25) search**
 * Using an **LLM-based router** to decide how each query is handled
@@ -67,78 +67,6 @@ Provide accurate, explainable Q&A over ESG / sustainability reports by:
 * Returning **explicit citations (source + page)**
 * Exposing the system via **Streamlit UI** and **FastAPI**
 * Measuring answer quality using **DeepEval** and tracing with **Langfuse**
-
----
-
-## Architecture (High Level)
-
-```text
-┌──────────────────────────┐
-│      ESG PDF Reports     │
-│   (Sustainability / ESG) │
-└─────────────┬────────────┘
-              │  (offline ingestion)
-              ▼
-┌──────────────────────────┐
-│   PDF Loader             │
-│   Page-wise extraction   │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Chunking               │
-│   Recursive splitter     │
-│   (overlap enabled)      │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Embeddings             │
-│   OpenAI embeddings      │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Vector Store           │
-│   FAISS (local, disk)    │
-└─────────────┬────────────┘
-              │
-              │  (online query time)
-              ▼
-┌──────────────────────────┐
-│   Agentic Router (LLM)   │
-│   - rag / summarize      │
-│   - extract_kpi          │
-│   - vector / lexical /  │
-│     hybrid retrieval     │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Retrieval Layer        │
-│   - Vector search        │
-│   - BM25 lexical search  │
-│   - Hybrid fusion        │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Optional Reranking     │
-│   LLM JSON-based rerank  │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Grounded Answering     │
-│   Strict RAG prompt      │
-│   Citations enforced    │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│   Interfaces             │
-│   - Streamlit UI         │
-│   - FastAPI (/qa)        │
-└─────────────┬────────────┘
-              ▼
-┌──────────────────────────┐
-│ Evaluation & Monitoring  │
-│ DeepEval + Langfuse      │
-└──────────────────────────┘
-```
 
 ---
 
@@ -212,7 +140,8 @@ Provide accurate, explainable Q&A over ESG / sustainability reports by:
 
   * Faithfulness
   * Relevance
-  * Context precision
+  * Correctness
+  * Completeness
 * **Tests**
 
   * Smoke tests (non-LLM)
